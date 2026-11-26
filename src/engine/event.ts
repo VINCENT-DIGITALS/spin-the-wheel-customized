@@ -174,3 +174,32 @@ export function cancel(s: State, now = Date.now()) {
   if (!s.history.some((h) => h.id === e.id))
     s.history.unshift(structuredClone(e));
 }
+
+/** Preserve the stopped event as an immutable archive, then unlock a fresh draft. */
+export function editAsDraft(s: State, now = Date.now()) {
+  if (editable(s.event)) return;
+  const previous = s.event;
+  if (!["Completed", "Cancelled"].includes(previous.status)) cancel(s, now);
+  s.event = {
+    ...structuredClone(previous),
+    id: crypto.randomUUID(),
+    status: "Draft",
+    config: { ...structuredClone(previous.config), scheduledAt: null },
+    participants: structuredClone(
+      previous.original.length ? previous.original : previous.participants,
+    ).map((p) => ({ ...p, lives: 1 })),
+    original: [],
+    results: [],
+    winners: [],
+    spin: null,
+    nextAt: null,
+    startedAt: null,
+    finishedAt: null,
+    audit: [],
+  };
+  audit(
+    s.event,
+    `Editable draft copied from archived event ${previous.id}`,
+    now,
+  );
+}

@@ -29,7 +29,8 @@ import {
 import { reconcile } from "./engine/event";
 import { remaining } from "./engine/timer";
 import { play, syncMusic } from "./services/audio";
-import { EventView, type Run } from "./components/EventView";
+import type { Run } from "./components/EventView";
+import { LiveDesk as EventView } from "./components/LiveDesk";
 import { AssetImage, useAsset } from "./components/ui";
 import { Participants } from "./pages/Participants";
 import { Prizes } from "./pages/Prizes";
@@ -362,7 +363,11 @@ export default function App() {
               </button>
             </div>
           )}
-          {content}
+          <div
+            className={`page-content ${["dashboard", "live", "audience"].includes(route) ? "live-content" : ""}`}
+          >
+            {content}
+          </div>
           <footer>
             <span>☯ {a.sect}</span>
             <span>May the heavens favor you.</span>

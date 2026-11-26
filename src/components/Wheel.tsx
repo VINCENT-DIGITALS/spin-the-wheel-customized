@@ -72,9 +72,9 @@ export function Wheel({
           const name = appearance.showDiscord && p.discord ? p.discord : p.name;
           ctx.fillText(
             name.length > 19 ? name.slice(0, 17) + "…" : name,
-            radius - 20,
+            radius - 12,
             0,
-            radius - 65,
+            radius * 0.66,
           );
           ctx.restore();
         }

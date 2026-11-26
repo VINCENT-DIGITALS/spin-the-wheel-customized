@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { Clock3, LockKeyhole } from "lucide-react";
 import type { State, Config } from "../types";
-import { audit, editable, estimate } from "../engine/event";
+import { audit, editable, estimate, editAsDraft } from "../engine/event";
 import { formatTime } from "../engine/timer";
 import { update } from "../services/store";
 import { Duration, Field, Panel, Toggle } from "../components/ui";
 import type { Run } from "../components/EventView";
 export function Configuration({ state, run }: { state: State; run: Run }) {
+  const [section, setSection] = useState("basics");
   const e = state.event,
     c = e.config,
     locked = !editable(e);
@@ -21,15 +23,48 @@ export function Configuration({ state, run }: { state: State; run: Run }) {
       }),
     );
   return (
-    <div className="page-stack">
+    <div className="page-stack configuration-page" data-section={section}>
+      <div
+        className="configuration-tabs"
+        role="tablist"
+        aria-label="Configuration sections"
+      >
+        {["basics", "rounds", "rules", "announcement"].map((t) => (
+          <button
+            key={t}
+            role="tab"
+            aria-selected={section === t}
+            onClick={() => setSection(t)}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
       {locked && (
         <div className="notice">
           <LockKeyhole size={17} />
-          Configuration is locked. Cancel or finish the event, then create a new
-          one to change it.
+          {e.status === "Paused"
+            ? "Pause keeps the current spin locked."
+            : "This event is locked."}
+          <button
+            onClick={() => {
+              if (
+                !["Completed", "Cancelled"].includes(e.status) &&
+                !confirm(
+                  "Stop this event and edit? This run will be archived and a new draft will keep your settings.",
+                )
+              )
+                return;
+              run(() => update((s) => editAsDraft(s)));
+            }}
+          >
+            {["Completed", "Cancelled"].includes(e.status)
+              ? "Edit configuration"
+              : "Stop & edit settings"}
+          </button>
         </div>
       )}
-      <div className="two-columns">
+      <div className="two-columns configuration-basics">
         <Panel title="Event identity">
           <Field label="Event title">
             <input
@@ -143,7 +178,7 @@ export function Configuration({ state, run }: { state: State; run: Run }) {
         </Panel>
       </div>
       <div className="two-columns">
-        <Panel title="Round flow">
+        <Panel title="Round flow" className="configuration-rounds">
           <Toggle
             disabled={locked}
             label="Automatically start the next round"
@@ -238,7 +273,7 @@ export function Configuration({ state, run }: { state: State; run: Run }) {
             </button>
           </div>
         </Panel>
-        <Panel title="Event rules">
+        <Panel title="Event rules" className="configuration-rules">
           <Field label="Rules shown in documentation and exports">
             <textarea
               rows={12}
@@ -252,7 +287,10 @@ export function Configuration({ state, run }: { state: State; run: Run }) {
           </Field>
         </Panel>
       </div>
-      <Panel title="Champion announcement">
+      <Panel
+        title="Champion announcement"
+        className="configuration-announcement"
+      >
         <Field
           label="Discord announcement template"
           hint="Available tokens: {title}, {winner}, {prizes}"

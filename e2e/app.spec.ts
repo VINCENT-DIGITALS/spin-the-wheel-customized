@@ -273,6 +273,7 @@ test("winner and survival modes operate through configuration UI", async ({
   await page.getByRole("link", { name: "Event configuration" }).click();
   await page.getByLabel("Game mode").selectOption("survival");
   await page.getByLabel("Starting lives").fill("2");
+  await page.getByRole("tab", { name: "rounds", exact: true }).click();
   await page.getByLabel("Automatically start the next round").click();
   await expect(
     page.getByLabel("Automatically start the next round"),
@@ -328,4 +329,49 @@ test("desktop and mobile visual layouts, audio preferences and multi-hour config
     path: "test-results/dashboard-mobile.png",
     fullPage: true,
   });
+});
+
+test("wheel and controls fit one screen; stop unlocks settings while retaining the archived run", async ({
+  page,
+}) => {
+  for (const size of [
+    { width: 1440, height: 900 },
+    { width: 1366, height: 768 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(size);
+    await expect(
+      page.getByRole("button", { name: "Begin the event" }),
+    ).toBeVisible();
+    const bounds = await page
+      .getByRole("button", { name: "Begin the event" })
+      .boundingBox();
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(size.height);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollHeight <= innerHeight,
+      ),
+    ).toBe(true);
+    const wheel = await page.locator("canvas").boundingBox();
+    expect(wheel!.height).toBeGreaterThan(100);
+  }
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.getByRole("button", { name: "Begin the event" }).click();
+  await expect(page.getByRole("button", { name: "Pause spin" })).toBeVisible();
+  await page.getByRole("button", { name: "Pause spin" }).click();
+  await expect(page.getByRole("button", { name: "Resume spin" })).toBeVisible();
+  page.on("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Stop & edit", exact: true }).click();
+  await expect(page.getByLabel("Game mode", { exact: true })).toBeEnabled();
+  await page.getByLabel("Game mode", { exact: true }).selectOption("survival");
+  await expect(
+    page.getByLabel("Starting lives", { exact: true }),
+  ).toBeVisible();
+  const saved = await page.evaluate(
+    (k) => JSON.parse(localStorage.getItem(k)!),
+    key,
+  );
+  expect(saved.event.status).toBe("Draft");
+  expect(saved.history.at(-1).status).toBe("Cancelled");
+  await page.screenshot({ path: "test-results/compact-wheel.png" });
 });

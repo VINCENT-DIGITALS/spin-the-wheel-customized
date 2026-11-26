@@ -108,9 +108,15 @@ Validated on 26 November 2026 with Node 24 and Chromium:
 
 - Clean `npm ci`: successful; npm audit reported zero vulnerabilities.
 - ESLint and strict TypeScript: passed.
-- 22 Vitest tests: passed, covering rejection sampling, all three modes, multi-hour recovery, pause/resume, nine unique eliminations, scheduling, imports and invalid backups.
-- 8 Playwright application tests: passed, covering UI management, refresh recovery, two hosts, audience sync, actual Canvas stopping color, complete demo, champion PNG, backups, all modes, themes, sound settings and desktop/mobile layouts.
+- 23 Vitest tests: passed, covering rejection sampling, all three modes, multi-hour recovery, pause/resume, nine unique eliminations, scheduling, imports and invalid backups.
+- 9 Playwright application tests: passed, covering UI management, refresh recovery, two hosts, audience sync, actual Canvas stopping color, complete demo, champion PNG, backups, all modes, themes, sound settings and desktop/mobile layouts.
 - 1 production Playwright test: passed, including GitHub Pages asset paths and a true offline reload/navigation after service-worker installation.
 - Production build: successful.
 
 Browser automation currently covers Chromium. Firefox, Safari, actual multi-day continuous operation and in-person listening tests have not been independently validated. Multi-hour timing is tested with simulated timestamps rather than waiting an entire day. Future storage schema versions require an explicit migration; version 1 currently preserves and rejects unknown versions safely.
+
+## Compact hosting workspace
+
+The live wheel, timer and host controls fit a single viewport on desktop and mobile. A tabbed inspector contains quick settings, contenders, prizes and history. On phones, use Wheel / Settings & details to switch panels. Long management lists scroll inside the workspace rather than moving the wheel off screen. Full configuration is divided into Basics, Rounds, Rules and Announcement tabs.
+
+**Pause** holds the same determined spin and keeps fairness settings locked. **Stop & edit** archives the stopped run and creates an unlocked draft, preserving your original participants, prize pool and configuration. Completed or previously cancelled events expose **Edit & start again** / **Edit configuration**.

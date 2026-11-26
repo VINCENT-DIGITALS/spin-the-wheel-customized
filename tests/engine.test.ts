@@ -244,3 +244,23 @@ describe("imports and validation", () => {
     expect(() => stateSchema.parse(s)).toThrow();
   });
 });
+
+it("stopping for edits preserves the run and restores an unlocked draft", async () => {
+  const { editAsDraft, editable } = await import("../src/engine/event");
+  const s = defaults(true);
+  s.event.config.title = "My event";
+  begin(s.event, 1000);
+  const originalId = s.event.id,
+    selected = s.event.spin!.selectedId;
+  pause(s.event, 2000);
+  editAsDraft(s, 3000);
+  expect(editable(s.event)).toBe(true);
+  expect(s.event.id).not.toBe(originalId);
+  expect(s.event.config.title).toBe("My event");
+  expect(s.event.participants).toHaveLength(10);
+  expect(s.event.spin).toBeNull();
+  expect(s.event.results).toHaveLength(0);
+  expect(s.history[0].status).toBe("Cancelled");
+  expect(s.history[0].spin!.selectedId).toBe(selected);
+  expect(stateSchema.safeParse(s).success).toBe(true);
+});
