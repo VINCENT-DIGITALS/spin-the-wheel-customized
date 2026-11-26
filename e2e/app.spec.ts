@@ -301,7 +301,8 @@ test("desktop and mobile visual layouts, audio preferences and multi-hour config
   await page.getByRole("button", { name: "24h", exact: true }).click();
   await expect(page.getByLabel("Spin duration Hours")).toHaveValue("24");
   await page.getByRole("link", { name: "Audio settings" }).click();
-  await page.getByLabel("Mute all audio").uncheck();
+  await page.getByLabel("Mute all audio").click();
+  await expect(page.getByLabel("Mute all audio")).not.toBeChecked();
   await page
     .getByRole("button", { name: "Preview victory", exact: true })
     .click();
@@ -310,10 +311,10 @@ test("desktop and mobile visual layouts, audio preferences and multi-hour config
   await expect(page.getByLabel("Mute all audio")).not.toBeChecked();
   await page.getByRole("link", { name: "Overview", exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.screenshot({
-    path: "test-results/dashboard-mobile.png",
-    fullPage: true,
-  });
+  await page.goto("?demo=1#/dashboard");
+  await expect(
+    page.getByRole("button", { name: "Toggle navigation" }),
+  ).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -323,4 +324,8 @@ test("desktop and mobile visual layouts, audio preferences and multi-hour config
   await expect(
     page.getByRole("link", { name: "Participants", exact: true }),
   ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/dashboard-mobile.png",
+    fullPage: true,
+  });
 });
